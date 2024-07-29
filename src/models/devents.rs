@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc, TimeZone};
 use serde::{Deserialize, Serialize};
-use sqlx::{postgres::PgHasArrayType, query, FromRow, PgPool, Type};
+use sqlx::{query, FromRow, PgPool, Type};
 use uuid::Uuid;
 use std::fmt;
 use anyhow::{Result, Error};
