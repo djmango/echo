@@ -12,7 +12,7 @@ use std::{
 };
 use tracing::{debug, warn};
 
-use crate::{AppConfig};
+use crate::{types::Claims, AppConfig};
 
 #[derive(Clone)]
 pub struct AuthenticatedUser {
@@ -36,9 +36,7 @@ impl AuthenticatedUser {
             "user_01J04BC3DXJ7PVGAW7VS30DG91" | // Vasyl Larin
             "user_01HTYMBHYK14M12HHK34A2R8RC" | // Dmitriy Osipov
             "user_01HYNY2S52Q5CQ6NWPP9D8D4AA" | // Francesco Simone Mensa
-            "user_01HX6WMNT229K6V7CFPD7VRNV8" | // Sergi C
-            "user_01HX9N7GH5QRFTGMYVWNPHCYMM" | // David Spokes
-            "user_01J2MNK392KWQAJVX20CJBG5E7" // Simon Kirchebner
+            "user_01HX6WMNT229K6V7CFPD7VRNV8"   // Sergi C
         )
     }
 }
@@ -103,37 +101,37 @@ where
     forward_ready!(service);
 
     fn call(&self, req: ServiceRequest) -> Self::Future {
-        // // Here's where we extract JWT from the request, validate it, and insert the user_id into the request extensions
-        // let app_config = self.app_config.clone();
+        // Here's where we extract JWT from the request, validate it, and insert the user_id into the request extensions
+        let app_config = self.app_config.clone();
 
-        // let auth_header = req
-        //     .headers()
-        //     .get(AUTHORIZATION)
-        //     .and_then(|value| value.to_str().ok())
-        //     .filter(|value| value.starts_with("Bearer "))
-        //     .map(|value| &value["Bearer ".len()..]);
+        let auth_header = req
+            .headers()
+            .get(AUTHORIZATION)
+            .and_then(|value| value.to_str().ok())
+            .filter(|value| value.starts_with("Bearer "))
+            .map(|value| &value["Bearer ".len()..]);
 
-        // match auth_header {
-        //     Some(token) => {
-        //         let decoding_key = DecodingKey::from_secret(app_config.jwt_secret.as_ref());
+        match auth_header {
+            Some(token) => {
+                let decoding_key = DecodingKey::from_secret(app_config.jwt_secret.as_ref());
 
-        //         match decode::<Claims>(token, &decoding_key, &Validation::default()) {
-        //             Ok(token_data) => {
-        //                 let claims = token_data.claims;
-        //                 let user_id = claims.sub;
+                match decode::<Claims>(token, &decoding_key, &Validation::default()) {
+                    Ok(token_data) => {
+                        let claims = token_data.claims;
+                        let user_id = claims.sub;
 
-        //                 debug!("Authenticated user: {}", &user_id);
-        //                 req.extensions_mut().insert(AuthenticatedUser { user_id });
-        //             }
-        //             Err(e) => {
-        //                 warn!("Invalid token: {:?}", e);
-        //             }
-        //         }
-        //     }
-        //     None => {
-        //         debug!("No Authorization header found.");
-        //     }
-        // };
+                        debug!("Authenticated user: {}", &user_id);
+                        req.extensions_mut().insert(AuthenticatedUser { user_id });
+                    }
+                    Err(e) => {
+                        warn!("Invalid token: {:?}", e);
+                    }
+                }
+            }
+            None => {
+                debug!("No Authorization header found.");
+            }
+        };
 
         let fut = self.service.call(req);
 
