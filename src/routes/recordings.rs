@@ -21,13 +21,13 @@ async fn fetch_save_url(
     let start_timestamp = req_body.start_timestamp_nanos;
     let duration_ms = req_body.duration_ms;
 
-    let s3_object_key = format!("{}/{}.mp4", session_id, start_timestamp);
+    let r2_object_key = format!("{}/{}.mp4", session_id, start_timestamp);
 
     Recording::new(
         &app_state.pool.clone(),
         recording_id,
         session_id,
-        s3_object_key.clone(),
+        r2_object_key.clone(),
         start_timestamp,
         duration_ms,
     )
@@ -37,7 +37,7 @@ async fn fetch_save_url(
         actix_web::error::ErrorInternalServerError(e.to_string())
     })?;
 
-    let presigned_url = generate_presigned_url(app_config, s3_object_key.clone())
+    let presigned_url = generate_presigned_url(app_config, r2_object_key.clone())
         .await
         .map_err(|e| {
             error!("Error getting presigned url: {:?}", e);
@@ -51,12 +51,10 @@ async fn generate_presigned_url(
     app_config: web::Data<Arc<AppConfig>>,
     object_key: String,
 ) -> Result<String> {
-    let s3_region = app_config.aws_region.clone();
-
-    let region_provider = RegionProviderChain::first_try(Region::new(s3_region));
+    let region_provider = RegionProviderChain::default_provider().or_else(Region::new("auto"));
     let credentials = Credentials::new(
-        app_config.aws_access_key_id.clone(),
-        app_config.aws_secret_access_key.clone(),
+        app_config.r2_access_key_id.clone(),
+        app_config.r2_secret_access_key.clone(),
         None,
         None,
         "env-credentials",
@@ -65,18 +63,19 @@ async fn generate_presigned_url(
     let config = aws_config::from_env()
         .region(region_provider)
         .credentials_provider(credentials)
+        .endpoint_url(app_config.r2_endpoint_url.clone())
         .load()
         .await;
 
     let client = Client::new(&config);
 
-    let bucket_name = "sidekick-videos0";
+    let bucket_name = "ghost-videos";
 
     let presigned_request = client
         .put_object()
         .bucket(bucket_name)
         .key(object_key)
-        .presigned(PresigningConfig::expires_in(Duration::from_secs(300))?)
+        .presigned(PresigningConfig::expires_in(Duration::from_secs(3000))?)
         .await?;
 
     Ok(presigned_request.uri().to_string())
