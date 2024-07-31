@@ -1190,33 +1190,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "echo"
-version = "0.1.0"
-dependencies = [
- "actix-cors",
- "actix-web",
- "anyhow",
- "aws-config",
- "aws-sdk-s3",
- "chrono",
- "futures",
- "futures-util",
- "jsonwebtoken",
- "reqwest",
- "serde",
- "serde_json",
- "shuttle-actix-web",
- "shuttle-persist",
- "shuttle-runtime",
- "sqlx",
- "tokio",
- "tracing",
- "utoipa",
- "utoipa-scalar",
- "uuid",
-]
-
-[[package]]
 name = "either"
 version = "1.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1762,6 +1735,33 @@ checksum = "634d9b1461af396cad843f47fdba5597a4f9e6ddd4bfb6ff5d85028c25cb12f6"
 dependencies = [
  "unicode-bidi",
  "unicode-normalization",
+]
+
+[[package]]
+name = "iinc-echo"
+version = "0.1.0"
+dependencies = [
+ "actix-cors",
+ "actix-web",
+ "anyhow",
+ "aws-config",
+ "aws-sdk-s3",
+ "chrono",
+ "futures",
+ "futures-util",
+ "jsonwebtoken",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "shuttle-actix-web",
+ "shuttle-persist",
+ "shuttle-runtime",
+ "sqlx",
+ "tokio",
+ "tracing",
+ "utoipa",
+ "utoipa-scalar",
+ "uuid",
 ]
 
 [[package]]
