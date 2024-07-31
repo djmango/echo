@@ -8,6 +8,8 @@ pub struct AppConfig {
     pub aws_region: String,
     pub aws_access_key_id: String,
     pub aws_secret_access_key: String,
+    pub workos_api_key: String,
+    pub workos_client_id: String,
 }
 
 impl AppConfig {
@@ -33,12 +35,22 @@ impl AppConfig {
             .get("AWS_SECRET_ACCESS_KEY")
             .ok_or_else(|| anyhow!("AWS_SECRET_ACCESS_KEY not found"))?;
 
+        let workos_api_key = secret_store
+            .get("WORKOS_API_KEY")
+            .ok_or_else(|| anyhow!("WORKOS_API_KEY not found"))?;
+
+        let workos_client_id = secret_store
+            .get("WORKOS_CLIENT_ID")
+            .ok_or_else(|| anyhow!("WORKOS_CLIENT_ID not found"))?;
+
         Ok(Self {
             db_connection_uri: db_connection_string,
             jwt_secret,
             aws_region,
             aws_access_key_id,
             aws_secret_access_key,
+            workos_api_key,
+            workos_client_id,
         })
     }
 }
