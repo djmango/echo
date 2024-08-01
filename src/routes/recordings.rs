@@ -69,13 +69,13 @@ async fn generate_presigned_url(
 
     let client = Client::new(&config);
 
-    let bucket_name = "ghost-videos";
+    let bucket_name = "iinc-files";
 
     let presigned_request = client
         .put_object()
         .bucket(bucket_name)
         .key(object_key)
-        .presigned(PresigningConfig::expires_in(Duration::from_secs(3000))?)
+        .presigned(PresigningConfig::expires_in(Duration::from_secs(300))?)
         .await?;
 
     Ok(presigned_request.uri().to_string())

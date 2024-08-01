@@ -1,11 +1,10 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            INSERT INTO devents (id, session_id, recording_id, mouse_action, keyboard_action, scroll_action, mouse_x, mouse_y, event_timestamp, deleted_at, created_at, updated_at)\n            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)\n            ",
+  "query": "\n            INSERT INTO devents (id, session_id, mouse_action, keyboard_action, scroll_action, mouse_x, mouse_y, event_timestamp, deleted_at, created_at, updated_at)\n            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)\n            ",
   "describe": {
     "columns": [],
     "parameters": {
       "Left": [
-        "Uuid",
         "Uuid",
         "Uuid",
         {
@@ -164,5 +163,5 @@
     },
     "nullable": []
   },
-  "hash": "a32f5f826de1a9acac948889a8df4a727a9b491d8e6d679cf3903856b316a00a"
+  "hash": "fbcd6870c02a0fb8e5730e7dbddf7cf24820d8f87f735eaecd76c4f42d5003d9"
 }
