@@ -2,23 +2,38 @@ use actix_web::{get, post, web, HttpResponse};
 use anyhow::Result;
 use uuid::Uuid;
 use std::sync::Arc;
-use tracing::error;
+use tracing::{error, info};
 
 use crate::models::Devent;
-use crate::types::DeventRequest;
+use crate::types::{DeventRequest, DeventRequestWrapper};
 use crate::{middleware::auth::AuthenticatedUser, AppState};
 
 #[post("/create")]
 async fn create_devent(
     app_state: web::Data<Arc<AppState>>,
-    _authenticated_user: AuthenticatedUser,
-    req_body: web::Json<Vec<DeventRequest>>,    
+    //_authenticated_user: AuthenticatedUser,
+    req_body: web::Json<DeventRequestWrapper>,    
 ) -> Result<HttpResponse, actix_web::Error> {
-    for devent_request in req_body.iter() {
-        let devent = Devent::new(
+    info!("Received create_devent request with {} events", req_body.events.len());
+
+    if req_body.events.is_empty() {
+        error!("Received empty request body");
+        return Err(actix_web::error::ErrorBadRequest("Empty request body"));
+    }
+
+    for (index, devent_request) in req_body.events.iter().enumerate() {
+        info!("Processing devent {}: session_id={}, mouse_action={:?}, keyboard_action={:?}, scroll_action={:?}, mouse_x={}, mouse_y={}, timestamp={}",
+        index,
+        devent_request.session_id,
+        devent_request.mouse_action,
+        devent_request.keyboard_action,
+        devent_request.scroll_action,
+        devent_request.mouse_x,
+        devent_request.mouse_y,
+        devent_request.event_timestamp_nanos);
+        match Devent::new(
             &app_state.pool,
             devent_request.session_id,
-            devent_request.recording_id,
             devent_request.mouse_action.clone(), 
             devent_request.keyboard_action.clone(), 
             devent_request.scroll_action.clone(), 
@@ -27,11 +42,15 @@ async fn create_devent(
             devent_request.event_timestamp_nanos
         )
         .await
-        .map_err(|e| {
-            error!("Error creating devent: {:?}", e);
-            actix_web::error::ErrorInternalServerError(e)
-        })?;
+        {
+            Ok(_) => info!("Successfully created devent {}", index),
+            Err(e) => {
+                error!("Error creating devent {}: {:?}", index, e);
+                return Err(actix_web::error::ErrorInternalServerError(e));
+            }
+        }
     }
+    info!("Successfully created all devents");
     Ok(HttpResponse::Ok().json("Successfully created devents"))
 }
 

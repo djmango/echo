@@ -12,8 +12,7 @@ pub enum MouseAction {
     Left,
     Right,
     Middle,
-    Button4,
-    Button5,
+    Other
 }
 
 impl fmt::Display for MouseAction {
@@ -22,8 +21,7 @@ impl fmt::Display for MouseAction {
             MouseAction::Left => write!(f, "left"),
             MouseAction::Right => write!(f, "right"),
             MouseAction::Middle => write!(f, "middle"),
-            MouseAction::Button4 => write!(f, "button4"),
-            MouseAction::Button5 => write!(f, "button5"),
+            MouseAction::Other => write!(f, "other")
         }
     }
 }
@@ -169,6 +167,8 @@ pub enum KeyboardActionKey {
     Period,
     Slash,
     Backslash,
+    #[serde(other)]
+    Unknown
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Type)]
@@ -229,7 +229,6 @@ impl Devent {
     pub async fn new(
         pool: &PgPool,
         session_id: Uuid,
-        recording_id: Uuid,
         mouse_action: Option<MouseAction>,
         keyboard_action: Option<KeyboardAction>,
         scroll_action: Option<ScrollAction>,
@@ -242,7 +241,6 @@ impl Devent {
         let devent = Devent {
             id: Uuid::new_v4(),
             session_id,
-            recording_id,
             mouse_action,
             keyboard_action,
             scroll_action,
@@ -254,12 +252,11 @@ impl Devent {
 
         query!(
             r#"
-            INSERT INTO devents (id, session_id, recording_id, mouse_action, keyboard_action, scroll_action, mouse_x, mouse_y, event_timestamp, deleted_at, created_at, updated_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+            INSERT INTO devents (id, session_id, mouse_action, keyboard_action, scroll_action, mouse_x, mouse_y, event_timestamp, deleted_at, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
             "#,
             devent.id,
             devent.session_id,
-            devent.recording_id,
             devent.mouse_action.clone() as Option<MouseAction>,
             devent.keyboard_action.clone() as Option<KeyboardAction>,
             devent.scroll_action.clone() as Option<ScrollAction>,

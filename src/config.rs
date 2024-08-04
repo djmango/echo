@@ -8,6 +8,8 @@ pub struct AppConfig {
     pub r2_access_key_id: String,
     pub r2_secret_access_key: String,
     pub r2_endpoint_url: String,
+    pub workos_api_key: String,
+    pub workos_client_id: String
 }
 
 impl AppConfig {
@@ -47,6 +49,8 @@ impl AppConfig {
             r2_access_key_id,
             r2_secret_access_key,
             r2_endpoint_url,
+            workos_api_key,
+            workos_client_id
         })
     }
 }

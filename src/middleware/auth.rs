@@ -90,37 +90,7 @@ where
     forward_ready!(service);
 
     fn call(&self, req: ServiceRequest) -> Self::Future {
-        // // Here's where we extract JWT from the request, validate it, and insert the user_id into the request extensions
-        // let app_config = self.app_config.clone();
-
-        // let auth_header = req
-        //     .headers()
-        //     .get(AUTHORIZATION)
-        //     .and_then(|value| value.to_str().ok())
-        //     .filter(|value| value.starts_with("Bearer "))
-        //     .map(|value| &value["Bearer ".len()..]);
-
-        // match auth_header {
-        //     Some(token) => {
-        //         let decoding_key = DecodingKey::from_secret(app_config.jwt_secret.as_ref());
-
-        //         match decode::<Claims>(token, &decoding_key, &Validation::default()) {
-        //             Ok(token_data) => {
-        //                 let claims = token_data.claims;
-        //                 let user_id = claims.sub;
-
-        //                 debug!("Authenticated user: {}", &user_id);
-        //                 req.extensions_mut().insert(AuthenticatedUser { user_id });
-        //             }
-        //             Err(e) => {
-        //                 warn!("Invalid token: {:?}", e);
-        //             }
-        //         }
-        //     }
-        //     None => {
-        //         debug!("No Authorization header found.");
-        //     }
-        // };
+    
         req.extensions_mut().insert(AuthenticatedUser { user_id: "me".to_string() });
 
         let fut = self.service.call(req);

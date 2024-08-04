@@ -38,6 +38,7 @@ async fn main(
     #[shuttle_runtime::Secrets] secret_store: SecretStore,
     #[shuttle_persist::Persist] persist: PersistInstance,
 ) -> ShuttleActixWeb<impl FnOnce(&mut web::ServiceConfig) + Send + Clone + 'static> {    
+    std::env::set_var("RUST_LOG", "actix_web=trace");
     let app_config = Arc::new(AppConfig::new(&secret_store).unwrap());
     let app_state = Arc::new(AppState {
         persist,
