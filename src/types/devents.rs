@@ -4,13 +4,17 @@ use uuid::Uuid;
 use crate::models::devents::{KeyboardAction, MouseAction, ScrollAction};
 
 #[derive(Deserialize)]
-pub struct CreateDeventRequest {
+pub struct DeventRequest {
     pub session_id: Uuid,
-    pub recording_id: Uuid,
     pub mouse_action: Option<MouseAction>,
     pub keyboard_action: Option<KeyboardAction>,
     pub scroll_action: Option<ScrollAction>,
     pub mouse_x: i32,
     pub mouse_y: i32,
     pub event_timestamp_nanos: i64,
+}
+
+#[derive(Deserialize)]
+pub struct DeventRequestWrapper {
+    pub events: Vec<DeventRequest>
 }

@@ -1,37 +1,48 @@
-use actix_web::{get, post, web};
+use actix_web::{get, post, web, HttpResponse};
 use anyhow::Result;
 use uuid::Uuid;
 use std::sync::Arc;
-use tracing::error;
+use tracing::{error, info};
 
 use crate::models::Devent;
-use crate::types::CreateDeventRequest;
+use crate::types::{DeventRequest, DeventRequestWrapper};
 use crate::{middleware::auth::AuthenticatedUser, AppState};
 
 #[post("/create")]
 async fn create_devent(
     app_state: web::Data<Arc<AppState>>,
-    _authenticated_user: AuthenticatedUser,
-    req_body: web::Json<CreateDeventRequest>,    
-) -> Result<web::Json<Devent>, actix_web::Error> {
-    let devent = Devent::new(
-        &app_state.pool,
-        req_body.session_id,
-        req_body.recording_id,
-        req_body.mouse_action.clone(), 
-        req_body.keyboard_action.clone(), 
-        req_body.scroll_action.clone(), 
-        req_body.mouse_x, 
-        req_body.mouse_y, 
-        req_body.event_timestamp_nanos
-    )
-    .await
-    .map_err(|e|{
-        error!("Error creating devent: {:?}", e);
-        actix_web::error::ErrorInternalServerError(e)
-    })?;
+    //_authenticated_user: AuthenticatedUser,
+    req_body: web::Json<DeventRequestWrapper>,    
+) -> Result<HttpResponse, actix_web::Error> {
+    info!("Received create_devent request with {} events", req_body.events.len());
 
-    Ok(web::Json(devent))
+    if req_body.events.is_empty() {
+        error!("Received empty request body");
+        return Err(actix_web::error::ErrorBadRequest("Empty request body"));
+    }
+
+    let devents: Vec<Devent> = req_body.events.iter().map(|devent_request| {
+        Devent::prepare_for_insert(
+            devent_request.session_id,
+            devent_request.mouse_action.clone(),
+            devent_request.keyboard_action.clone(),
+            devent_request.scroll_action.clone(),
+            devent_request.mouse_x,
+            devent_request.mouse_y,
+            devent_request.event_timestamp_nanos
+        )
+    }).collect();
+
+    match Devent::batch_insert(&app_state.pool, &devents).await {
+        Ok(_) => {
+            info!("Successfully created all devents");
+            Ok(HttpResponse::Ok().json("Successfully created devents"))
+        },
+        Err(e) => {
+            error!("Error creating devents: {:?}", e);
+            Err(actix_web::error::ErrorInternalServerError(e))
+        }
+    }
 }
 
 #[get("/{id}")]

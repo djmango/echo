@@ -8,6 +8,8 @@ pub struct AppConfig {
     pub r2_access_key_id: String,
     pub r2_secret_access_key: String,
     pub r2_endpoint_url: String,
+    pub workos_api_key: String,
+    pub workos_client_id: String
 }
 
 impl AppConfig {
@@ -33,12 +35,22 @@ impl AppConfig {
             .get("R2_ENDPOINT_URL")
             .ok_or_else(|| anyhow!("R2_ENDPOINT_URL not found"))?;
 
+        let workos_api_key = secret_store
+            .get("WORKOS_API_KEY")
+            .ok_or_else(|| anyhow!("WORKOS_API_KEY not found"))?;
+
+        let workos_client_id = secret_store
+            .get("WORKOS_CLIENT_ID")
+            .ok_or_else(|| anyhow!("WORKOS_CLIENT_ID not found"))?;
+
         Ok(Self {
             db_connection_uri: db_connection_string,
             jwt_secret,
             r2_access_key_id,
             r2_secret_access_key,
             r2_endpoint_url,
+            workos_api_key,
+            workos_client_id
         })
     }
 }

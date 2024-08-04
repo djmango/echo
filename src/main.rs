@@ -33,12 +33,12 @@ struct AppState {
     )
 )]
 struct ApiDoc;
-
 #[shuttle_runtime::main]
 async fn main(
     #[shuttle_runtime::Secrets] secret_store: SecretStore,
     #[shuttle_persist::Persist] persist: PersistInstance,
 ) -> ShuttleActixWeb<impl FnOnce(&mut web::ServiceConfig) + Send + Clone + 'static> {    
+    std::env::set_var("RUST_LOG", "actix_web=trace");
     let app_config = Arc::new(AppConfig::new(&secret_store).unwrap());
     let app_state = Arc::new(AppState {
         persist,
@@ -63,6 +63,14 @@ async fn main(
                 .service(
                     web::scope("/recordings")
                         .service(routes::recordings::fetch_save_url)
+                )
+                .service(
+                    web::scope("/auth")
+                        .service(routes::auth::login)
+                        .service(routes::auth::signup)
+                        .service(routes::auth::auth_callback)
+                        .service(routes::auth::refresh_token)
+                        .service(routes::auth::get_user)
                 )
                 .service(Scalar::with_url("/scalar", openapi))
                 .wrap(middleware::auth::AuthenticationMiddleware {
