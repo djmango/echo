@@ -9,7 +9,7 @@ use uuid::Uuid;
 pub struct Recording {
     pub id: Uuid,
     pub session_id: Uuid,
-    pub s3_object_key: String,
+    pub r2_object_key: String,
     pub start_timestamp: DateTime<Utc>,
     pub duration: u64,
     pub created_at: DateTime<Utc>,
@@ -22,7 +22,7 @@ impl Default for Recording {
         Recording {
             id: Uuid::new_v4(),
             session_id: Uuid::new_v4(),
-            s3_object_key: String::new(),
+            r2_object_key: String::new(),
             start_timestamp: Utc::now(),
             duration: 0,
             deleted_at: None,
@@ -37,7 +37,7 @@ impl Recording {
         pool: &PgPool,
         recording_id: Uuid,
         session_id: Uuid,
-        s3_object_key: String,
+        r2_object_key: String,
         start_timestamp_nanos: i64,
         duration_ms: u64,
     ) -> Result<Self> {
@@ -46,7 +46,7 @@ impl Recording {
         let recording = Recording {
             id: recording_id,
             session_id,
-            s3_object_key,
+            r2_object_key,
             start_timestamp,
             duration: duration_ms,
             ..Default::default()
@@ -54,10 +54,10 @@ impl Recording {
 
         query!(
             r#"
-            INSERT INTO recordings (id, session_id, s3_object_key, start_timestamp, duration, created_at, updated_at) 
+            INSERT INTO recordings (id, session_id, r2_object_key, start_timestamp, duration, created_at, updated_at) 
             VALUES ($1, $2, $3, $4, $5, $6, $7)
             "#,
-            recording.id, recording.session_id, recording.s3_object_key, recording.start_timestamp, recording.duration as i64, recording.created_at, recording.updated_at
+            recording.id, recording.session_id, recording.r2_object_key, recording.start_timestamp, recording.duration as i64, recording.created_at, recording.updated_at
         )
         .execute(pool)
         .await?;

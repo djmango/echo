@@ -5,11 +5,9 @@ use shuttle_runtime::SecretStore;
 pub struct AppConfig {
     pub db_connection_uri: String,
     pub jwt_secret: String,
-    pub aws_region: String,
-    pub aws_access_key_id: String,
-    pub aws_secret_access_key: String,
-    pub workos_api_key: String,
-    pub workos_client_id: String,
+    pub r2_access_key_id: String,
+    pub r2_secret_access_key: String,
+    pub r2_endpoint_url: String,
 }
 
 impl AppConfig {
@@ -23,17 +21,17 @@ impl AppConfig {
             .get("DB_CONNECTION_URI")
             .ok_or_else(|| anyhow!("DB_CONNECTION_URI not found"))?;
 
-        let aws_region = secret_store
-            .get("AWS_REGION")
-            .ok_or_else(|| anyhow!("AWS_REGION not found"))?;
+        let r2_access_key_id = secret_store
+            .get("R2_ACCESS_KEY_ID")
+            .ok_or_else(|| anyhow!("R2_ACCESS_KEY_ID not found"))?;
 
-        let aws_access_key_id = secret_store
-            .get("AWS_ACCESS_KEY_ID")
-            .ok_or_else(|| anyhow!("AWS_ACCESS_KEY_ID not found"))?;
+        let r2_secret_access_key = secret_store
+            .get("R2_SECRET_ACCESS_KEY")
+            .ok_or_else(|| anyhow!("R2_SECRET_ACCESS_KEY not found"))?;
 
-        let aws_secret_access_key = secret_store
-            .get("AWS_SECRET_ACCESS_KEY")
-            .ok_or_else(|| anyhow!("AWS_SECRET_ACCESS_KEY not found"))?;
+        let r2_endpoint_url = secret_store
+            .get("R2_ENDPOINT_URL")
+            .ok_or_else(|| anyhow!("R2_ENDPOINT_URL not found"))?;
 
         let workos_api_key = secret_store
             .get("WORKOS_API_KEY")
@@ -46,11 +44,9 @@ impl AppConfig {
         Ok(Self {
             db_connection_uri: db_connection_string,
             jwt_secret,
-            aws_region,
-            aws_access_key_id,
-            aws_secret_access_key,
-            workos_api_key,
-            workos_client_id,
+            r2_access_key_id,
+            r2_secret_access_key,
+            r2_endpoint_url,
         })
     }
 }
