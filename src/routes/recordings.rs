@@ -43,7 +43,7 @@ async fn fetch_save_url(
             error!("Error getting presigned url: {:?}", e);
             actix_web::error::ErrorInternalServerError(e.to_string())
         })?;
-
+    
     Ok(presigned_url)
 }
 
