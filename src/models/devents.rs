@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc, TimeZone};
 use serde::{Deserialize, Serialize};
-use sqlx::{query, FromRow, PgPool, Type};
+use sqlx::{query, FromRow, PgPool, Type, Postgres, QueryBuilder};
 use uuid::Uuid;
 use std::fmt;
 use anyhow::{Result, Error};
@@ -304,5 +304,56 @@ impl Devent {
             .await?;
 
         Ok(devents)
+    }
+}
+
+impl Devent {
+    #[allow(clippy::too_many_arguments)]
+    pub fn prepare_for_insert(
+        session_id: Uuid,
+        mouse_action: Option<MouseAction>,
+        keyboard_action: Option<KeyboardAction>,
+        scroll_action: Option<ScrollAction>,
+        mouse_x: i32,
+        mouse_y: i32,
+        event_timestamp_nanos: i64,
+    ) -> Self {
+        let event_timestamp = Utc.timestamp_nanos(event_timestamp_nanos);
+
+        Devent {
+            id: Uuid::new_v4(),
+            session_id,
+            mouse_action,
+            keyboard_action,
+            scroll_action,
+            mouse_x,
+            mouse_y,
+            event_timestamp,
+            ..Default::default()
+        }
+    }
+
+    pub async fn batch_insert(pool: &PgPool, devents: &[Devent]) -> Result<(), Error> {
+        let mut query_builder: QueryBuilder<Postgres> = QueryBuilder::new(
+            "INSERT INTO devents (id, session_id, mouse_action, keyboard_action, scroll_action, mouse_x, mouse_y, event_timestamp, deleted_at, created_at, updated_at) "
+        );
+
+        query_builder.push_values(devents, |mut b, devent| {
+            b.push_bind(devent.id)
+                .push_bind(devent.session_id)
+                .push_bind(devent.mouse_action.clone())
+                .push_bind(devent.keyboard_action.clone())
+                .push_bind(devent.scroll_action.clone())
+                .push_bind(devent.mouse_x)
+                .push_bind(devent.mouse_y)
+                .push_bind(devent.event_timestamp)
+                .push_bind(devent.deleted_at)
+                .push_bind(devent.created_at)
+                .push_bind(devent.updated_at);
+        });
+
+        query_builder.build().execute(pool).await?;
+
+        Ok(())
     }
 }

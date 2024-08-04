@@ -21,37 +21,28 @@ async fn create_devent(
         return Err(actix_web::error::ErrorBadRequest("Empty request body"));
     }
 
-    for (index, devent_request) in req_body.events.iter().enumerate() {
-        info!("Processing devent {}: session_id={}, mouse_action={:?}, keyboard_action={:?}, scroll_action={:?}, mouse_x={}, mouse_y={}, timestamp={}",
-        index,
-        devent_request.session_id,
-        devent_request.mouse_action,
-        devent_request.keyboard_action,
-        devent_request.scroll_action,
-        devent_request.mouse_x,
-        devent_request.mouse_y,
-        devent_request.event_timestamp_nanos);
-        match Devent::new(
-            &app_state.pool,
+    let devents: Vec<Devent> = req_body.events.iter().map(|devent_request| {
+        Devent::prepare_for_insert(
             devent_request.session_id,
-            devent_request.mouse_action.clone(), 
-            devent_request.keyboard_action.clone(), 
-            devent_request.scroll_action.clone(), 
-            devent_request.mouse_x, 
-            devent_request.mouse_y, 
+            devent_request.mouse_action.clone(),
+            devent_request.keyboard_action.clone(),
+            devent_request.scroll_action.clone(),
+            devent_request.mouse_x,
+            devent_request.mouse_y,
             devent_request.event_timestamp_nanos
         )
-        .await
-        {
-            Ok(_) => info!("Successfully created devent {}", index),
-            Err(e) => {
-                error!("Error creating devent {}: {:?}", index, e);
-                return Err(actix_web::error::ErrorInternalServerError(e));
-            }
+    }).collect();
+
+    match Devent::batch_insert(&app_state.pool, &devents).await {
+        Ok(_) => {
+            info!("Successfully created all devents");
+            Ok(HttpResponse::Ok().json("Successfully created devents"))
+        },
+        Err(e) => {
+            error!("Error creating devents: {:?}", e);
+            Err(actix_web::error::ErrorInternalServerError(e))
         }
     }
-    info!("Successfully created all devents");
-    Ok(HttpResponse::Ok().json("Successfully created devents"))
 }
 
 #[get("/{id}")]
