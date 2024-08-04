@@ -1,37 +1,38 @@
-use actix_web::{get, post, web};
+use actix_web::{get, post, web, HttpResponse};
 use anyhow::Result;
 use uuid::Uuid;
 use std::sync::Arc;
 use tracing::error;
 
 use crate::models::Devent;
-use crate::types::CreateDeventRequest;
+use crate::types::DeventRequest;
 use crate::{middleware::auth::AuthenticatedUser, AppState};
 
 #[post("/create")]
 async fn create_devent(
     app_state: web::Data<Arc<AppState>>,
     _authenticated_user: AuthenticatedUser,
-    req_body: web::Json<CreateDeventRequest>,    
-) -> Result<web::Json<Devent>, actix_web::Error> {
-    let devent = Devent::new(
-        &app_state.pool,
-        req_body.session_id,
-        req_body.recording_id,
-        req_body.mouse_action.clone(), 
-        req_body.keyboard_action.clone(), 
-        req_body.scroll_action.clone(), 
-        req_body.mouse_x, 
-        req_body.mouse_y, 
-        req_body.event_timestamp_nanos
-    )
-    .await
-    .map_err(|e|{
-        error!("Error creating devent: {:?}", e);
-        actix_web::error::ErrorInternalServerError(e)
-    })?;
-
-    Ok(web::Json(devent))
+    req_body: web::Json<Vec<DeventRequest>>,    
+) -> Result<HttpResponse, actix_web::Error> {
+    for devent_request in req_body.iter() {
+        let devent = Devent::new(
+            &app_state.pool,
+            devent_request.session_id,
+            devent_request.recording_id,
+            devent_request.mouse_action.clone(), 
+            devent_request.keyboard_action.clone(), 
+            devent_request.scroll_action.clone(), 
+            devent_request.mouse_x, 
+            devent_request.mouse_y, 
+            devent_request.event_timestamp_nanos
+        )
+        .await
+        .map_err(|e| {
+            error!("Error creating devent: {:?}", e);
+            actix_web::error::ErrorInternalServerError(e)
+        })?;
+    }
+    Ok(HttpResponse::Ok().json("Successfully created devents"))
 }
 
 #[get("/{id}")]

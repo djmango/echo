@@ -4,7 +4,7 @@ use uuid::Uuid;
 use crate::models::devents::{KeyboardAction, MouseAction, ScrollAction};
 
 #[derive(Deserialize)]
-pub struct CreateDeventRequest {
+pub struct DeventRequest {
     pub session_id: Uuid,
     pub recording_id: Uuid,
     pub mouse_action: Option<MouseAction>,
